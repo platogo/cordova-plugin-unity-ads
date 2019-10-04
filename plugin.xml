@@ -23,4 +23,17 @@
 
         <source-file src="src/android/UnityAdsPlugin.java" target-dir="src/com/platogo/cordova/unityads" />
     </platform>
+
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="UnityAdsPlugin">
+                <param name="ios-package" value="UnityAdsPlugin" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/UnityAdsPlugin.h" />
+        <source-file src="src/ios/UnityAdsPlugin.m" />
+        <framework src="libs/ios/UnityAds.framework" custom="true" />
+    </platform>    
 </plugin>
