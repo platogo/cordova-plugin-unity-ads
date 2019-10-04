@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        id="cordova-plugin-unity-ads" version="0.0.1">
+    <name>Unity Ads</name>
+    <description>Cordova Unity Ads</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,device</keywords>
+    <js-module src="www/unity-ads.js" name="unity-ads">
+        <clobbers target="UnityAds" />
+    </js-module>
+
+
+    <platform name="android">
+        <config-file target="config.xml" parent="/*">
+            <feature name="UnityAdsPlugin">
+                <param name="android-package" value="com.platogo.cordova.unityads.UnityAdsPlugin"/>
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <framework src="src/android/UnityAdsPlugin.gradle" custom="true" type="gradleReference" />
+        <resource-file src="libs/android/unity-ads.aar" target="libs/android/unity-ads.aar"  />
+
+        <source-file src="src/android/UnityAdsPlugin.java" target-dir="src/com/platogo/cordova/unityads" />
+    </platform>
+</plugin>

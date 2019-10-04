@@ -1,0 +1,21 @@
+{
+  "name": "cordova-plugin-unity-ads",
+  "version": "0.0.1",
+  "description": "Cordova Unity Ads",
+  "cordova": {
+    "id": "cordova-plugin-unity-ads",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "keywords": [
+    "cordova",
+    "device",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "",
+  "license": "Apache 2.0"
+}
