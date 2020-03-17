@@ -8,9 +8,9 @@ UnityAds.prototype.initialize = (gameId) => {
     })
 }
 
-UnityAds.prototype.show = () => {
+UnityAds.prototype.show = (serverId) => {
     return new Promise((resolve, reject) => {
-        exec(resolve, reject, 'UnityAdsPlugin', 'show', []);
+        exec(resolve, reject, 'UnityAdsPlugin', 'show', [serverId]);
     })
 }
 
