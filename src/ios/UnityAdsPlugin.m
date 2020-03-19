@@ -18,8 +18,17 @@
 {
     self.showCallbackId = command.callbackId;
     
-    [UnityAds show:self.viewController];
-    // TODO: add placement id [UnityAds show:self.viewController placementId:<#(nonnull NSString *)#>];
+    if([UnityAds isReady]) {
+        if (command.arguments.count > 0) {
+            NSString* serverId = [command.arguments objectAtIndex:0];
+            id playerMetaData = [[UADSPlayerMetaData alloc] init];
+            [playerMetaData setServerId:serverId];
+            [playerMetaData commit];
+        }
+
+        [UnityAds show:self.viewController];
+        // TODO: add placement id [UnityAds show:self.viewController placementId:<#(nonnull NSString *)#>];
+    }
 }
 
 @end
