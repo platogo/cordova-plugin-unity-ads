@@ -1,7 +1,4 @@
 #import "UnityAdsPlugin.h"
-#import <Cordova/CDVPlugin.h>
-#import <UnityAds/UnityAds.h>
-
 @implementation UnityAdsPlugin
 
 @synthesize initializeCallbackId;
@@ -22,6 +19,7 @@
     self.showCallbackId = command.callbackId;
     
     [UnityAds show:self.viewController];
+    // TODO: add placement id [UnityAds show:self.viewController placementId:<#(nonnull NSString *)#>];
 }
 
 @end
