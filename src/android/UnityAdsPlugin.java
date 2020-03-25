@@ -9,10 +9,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 
 public class UnityAdsPlugin extends CordovaPlugin {
     private CallbackContext initializeCallback;
     private CallbackContext showCallback;
+    private static final String TAG = "UnityAds";
 
 
     @Override
@@ -64,6 +66,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
         private void initialize(JSONArray args, CallbackContext callbackContext) {
             initializeCallback = callbackContext;
             String gameId;
+            Boolean testMode = false;
 
             try{
                 gameId = args.getString(0);
@@ -72,12 +75,18 @@ public class UnityAdsPlugin extends CordovaPlugin {
                 return;
             }
 
+            try {
+                testMode = args.getBoolean(1);
+            } catch (JSONException e){
+                Log.w(TAG, "Warning: Test mode not set");
+            }
+
             if (gameId == "null") {
                 callbackContext.error("Invalid Game ID");
                 return;
             }
 
-            UnityAds.initialize(cordova.getActivity(), gameId, this);
+            UnityAds.initialize(cordova.getActivity(), gameId, this, testMode);
         }
 
         @Override

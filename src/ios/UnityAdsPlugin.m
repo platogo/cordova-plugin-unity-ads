@@ -7,11 +7,13 @@
 - (void)initialize:(CDVInvokedUrlCommand*)command
 {
     NSString* gameId = [command argumentAtIndex:0];
+    BOOL testMode = [[command argumentAtIndex:1] boolValue]; // is NO if not passed as argument
+    
     if (gameId != nil && [gameId length] > 0) {
         self.initializeCallbackId = command.callbackId;
         ViewController* vc = [ViewController alloc];
         [vc initialize:self];
-        [UnityAds initialize:gameId delegate:[vc self]];
+        [UnityAds initialize:gameId delegate:[vc self] testMode: testMode];
     } else {        
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"Game id imssing:"];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];

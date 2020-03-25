@@ -2,9 +2,9 @@ var exec = require('cordova/exec');
 
 function UnityAds() { }
 
-UnityAds.prototype.initialize = (gameId) => {
+UnityAds.prototype.initialize = (gameId, testMode) => {
     return new Promise((resolve, reject) => {
-        exec(resolve, reject, 'UnityAdsPlugin', 'initialize', [gameId]);
+        exec(resolve, reject, 'UnityAdsPlugin', 'initialize', [gameId, testMode]);
     })
 }
 
