@@ -29,18 +29,14 @@ public class UnityAdsPlugin extends CordovaPlugin {
             return true;
         } else if ("show".equals(action)) {
             if (UnityAds.isReady()) {
-                String serverId;
+                String serverId = args.getString(0);
 
-                try{
-                    serverId = args.getString(0);
-                }catch(JSONException e){
-                    callbackContext.error("Invalid Server ID");
-                    return true;
+                if (serverId != "null") {
+                    PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
+                    playerMetaData.setServerId(serverId);
+                    playerMetaData.commit();
                 }
 
-                PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
-                playerMetaData.setServerId(serverId);
-                playerMetaData.commit();
 
                 showCallback = callbackContext;
                 UnityAds.show(cordova.getActivity());
