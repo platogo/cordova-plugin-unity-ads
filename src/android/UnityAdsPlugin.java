@@ -24,6 +24,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if ("initialize".equals(action)) {
+            showCallback = callbackContext; // TODO: needed to ensure callback is set in onUnityAdsError -> think about better solution
             new AdsListener().initialize(args, callbackContext);
             return true;
         } else if ("show".equals(action)) {
@@ -71,6 +72,11 @@ public class UnityAdsPlugin extends CordovaPlugin {
             try{
                 gameId = args.getString(0);
             }catch(JSONException e){
+                callbackContext.error("Invalid Game ID");
+                return;
+            }
+
+            if (gameId == "null") {
                 callbackContext.error("Invalid Game ID");
                 return;
             }
