@@ -6,12 +6,16 @@
 
 - (void)initialize:(CDVInvokedUrlCommand*)command
 {
-    NSString* gameId = [command.arguments objectAtIndex:0];
-
-    self.initializeCallbackId = command.callbackId;
-    ViewController* vc = [ViewController alloc];
-    [vc initialize:self];
-    [UnityAds initialize:gameId delegate:[vc self]];
+    NSString* gameId = [command argumentAtIndex:0];
+    if (gameId != nil && [gameId length] > 0) {
+        self.initializeCallbackId = command.callbackId;
+        ViewController* vc = [ViewController alloc];
+        [vc initialize:self];
+        [UnityAds initialize:gameId delegate:[vc self]];
+    } else {        
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"Game id imssing:"];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    }
 }
 
 - (void)show:(CDVInvokedUrlCommand*)command
@@ -20,7 +24,7 @@
     
     if([UnityAds isReady]) {
         if (command.arguments.count > 0) {
-            NSString* serverId = [command.arguments objectAtIndex:0];
+            NSString* serverId = [command argumentAtIndex:0];
             id playerMetaData = [[UADSPlayerMetaData alloc] init];
             [playerMetaData setServerId:serverId];
             [playerMetaData commit];
