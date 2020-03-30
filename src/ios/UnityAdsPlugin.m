@@ -9,10 +9,12 @@
     NSString* gameId = [command argumentAtIndex:0];
     BOOL testMode = [[command argumentAtIndex:1] boolValue]; // is NO if not passed as argument
     
+    BOOL debugMode = [[command argumentAtIndex:2] boolValue]; // is NO if not passed as argument
     if (gameId != nil && [gameId length] > 0) {
         self.initializeCallbackId = command.callbackId;
         ViewController* vc = [ViewController alloc];
         [vc initialize:self];
+        [UnityAds setDebugMode:debugMode];
         [UnityAds initialize:gameId delegate:[vc self] testMode: testMode];
     } else {        
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"Game id imssing:"];

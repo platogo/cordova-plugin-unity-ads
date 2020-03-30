@@ -20,7 +20,6 @@ public class UnityAdsPlugin extends CordovaPlugin {
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
-        // your init code here
     }
     
     @Override
@@ -67,6 +66,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
             initializeCallback = callbackContext;
             String gameId;
             Boolean testMode = false;
+            Boolean debugMode = false;
 
             try{
                 gameId = args.getString(0);
@@ -81,11 +81,18 @@ public class UnityAdsPlugin extends CordovaPlugin {
                 Log.w(TAG, "Warning: Test mode not set");
             }
 
+            try {
+                debugMode = args.getBoolean(2);
+            } catch (JSONException e){
+                Log.w(TAG, "Warning: Debug mode not set");
+            }
+
             if (gameId == "null") {
                 callbackContext.error("Invalid Game ID");
                 return;
             }
 
+            UnityAds.setDebugMode(debugMode);
             UnityAds.initialize(cordova.getActivity(), gameId, this, testMode);
         }
 
