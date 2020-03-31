@@ -64,6 +64,12 @@ public class UnityAdsPlugin extends CordovaPlugin {
     private class AdsListener implements IUnityAdsExtendedListener {
         private void initialize(JSONArray args, CallbackContext callbackContext) {
             initializeCallback = callbackContext;
+
+            if (UnityAds.isInitialized()) {
+                initializeCallback.success();
+                return;
+            }
+
             String gameId;
             Boolean testMode = false;
             Boolean debugMode = false;

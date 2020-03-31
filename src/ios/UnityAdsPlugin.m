@@ -6,6 +6,12 @@
 
 - (void)initialize:(CDVInvokedUrlCommand*)command
 {
+    if ([UnityAds isInitialized]) {
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        return;
+    }
+    
     NSString* gameId = [command argumentAtIndex:0];
     BOOL testMode = [[command argumentAtIndex:1] boolValue]; // is NO if not passed as argument
     
