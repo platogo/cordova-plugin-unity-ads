@@ -1,8 +1,7 @@
 #import "UnityAdsPlugin.h"
 @implementation UnityAdsPlugin
 
-@synthesize initializeCallbackId;
-@synthesize showCallbackId;
+@synthesize callbackId;
 
 - (void)initialize:(CDVInvokedUrlCommand*)command
 {
@@ -11,13 +10,12 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         return;
     }
-    
     NSString* gameId = [command argumentAtIndex:0];
     BOOL testMode = [[command argumentAtIndex:1] boolValue]; // is NO if not passed as argument
     
     BOOL debugMode = [[command argumentAtIndex:2] boolValue]; // is NO if not passed as argument
     if (gameId != nil && [gameId length] > 0) {
-        self.initializeCallbackId = command.callbackId;
+        self.callbackId = command.callbackId;
         ViewController* vc = [ViewController alloc];
         [vc initialize:self];
         [UnityAds setDebugMode:debugMode];
@@ -30,7 +28,7 @@
 
 - (void)show:(CDVInvokedUrlCommand*)command
 {
-    self.showCallbackId = command.callbackId;
+    self.callbackId = command.callbackId;
     
     if([UnityAds isReady]) {
         if (command.arguments.count > 0) {
@@ -66,7 +64,7 @@
 - (void)unityAdsDidFinish:(nonnull NSString *)placementId withFinishState:(UnityAdsFinishState)state {
     if (state == kUnityAdsFinishStateCompleted) {
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
-        [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.showCallbackId];
+        [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
     }
 }
 
@@ -76,12 +74,12 @@
 
 - (void)unityAdsReady:(nonnull NSString *)placementId {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
-    [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.initializeCallbackId];
+    [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
 }
 
 - (void)unityAdsDidClick:(nonnull NSString *)placementId {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
-    [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.showCallbackId];
+    [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
 }
 
 - (void)unityAdsPlacementStateChanged:(nonnull NSString *)placementId oldState:(UnityAdsPlacementState)oldState newState:(UnityAdsPlacementState)newState {

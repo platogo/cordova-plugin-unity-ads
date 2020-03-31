@@ -12,8 +12,7 @@ import android.content.Context;
 import android.util.Log;
 
 public class UnityAdsPlugin extends CordovaPlugin {
-    private CallbackContext initializeCallback;
-    private CallbackContext showCallback;
+    private CallbackContext callbackID;
     private static final String TAG = "UnityAds";
 
 
@@ -25,7 +24,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if ("initialize".equals(action)) {
-            showCallback = callbackContext; // TODO: needed to ensure callback is set in onUnityAdsError -> think about better solution
+            callbackID = callbackContext;
             new AdsListener().initialize(args, callbackContext);
             return true;
         } else if ("show".equals(action)) {
@@ -39,7 +38,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
                 }
 
 
-                showCallback = callbackContext;
+                callbackID = callbackContext;
                 UnityAds.show(cordova.getActivity());
             }
             return true;
@@ -63,10 +62,9 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
     private class AdsListener implements IUnityAdsExtendedListener {
         private void initialize(JSONArray args, CallbackContext callbackContext) {
-            initializeCallback = callbackContext;
-
+            callbackID = callbackContext;
             if (UnityAds.isInitialized()) {
-                initializeCallback.success();
+                callbackID.success();
                 return;
             }
 
@@ -104,7 +102,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
         @Override
         public void onUnityAdsReady(String s) {
-            initializeCallback.success();
+            callbackID.success();
         }
 
         @Override
@@ -115,20 +113,20 @@ public class UnityAdsPlugin extends CordovaPlugin {
         @Override
         public void onUnityAdsFinish(String s, UnityAds.FinishState finishState) {
             if (finishState != UnityAds.FinishState.SKIPPED) {
-                showCallback.success();
+                callbackID.success();
             } else {
-                showCallback.error("VIDEO_SKIPPED");
+                callbackID.error("VIDEO_SKIPPED");
             }
         }
 
         @Override
         public void onUnityAdsError(UnityAds.UnityAdsError unityAdsError, String s) {
-            showCallback.error(s);
+            callbackID.error(s);
         }
 
         @Override
         public void onUnityAdsClick(String s) {
-            showCallback.success();
+            callbackID.success();
         }
 
         @Override

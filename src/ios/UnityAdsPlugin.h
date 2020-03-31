@@ -1,10 +1,7 @@
 #import <Cordova/CDVPlugin.h>
 #import <UnityAds/UnityAds.h>
 @interface UnityAdsPlugin: CDVPlugin
-//@synthesize initializeCallbackId;
-//@synthesize showCallbackId;
-@property (nonatomic, retain) NSString* initializeCallbackId;
-@property (nonatomic, retain) NSString* showCallbackId;
+@property (nonatomic, retain) NSString* callbackId;
 - (void)initialize:(CDVInvokedUrlCommand*)command;
 - (void)show:(CDVInvokedUrlCommand*)command;
 @end
