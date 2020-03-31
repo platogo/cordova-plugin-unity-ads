@@ -30,6 +30,14 @@ public class UnityAdsPlugin extends CordovaPlugin {
         } else if ("show".equals(action)) {
             if (UnityAds.isReady()) {
                 String serverId = args.getString(0);
+                String videoAdPlacementId = null;
+
+                try {
+                    videoAdPlacementId = args.getString(1);
+                } catch (JSONException e){
+                    Log.w(TAG, "Warning: Video Ad Placement id mode not set");
+                }
+
 
                 if (serverId != "null") {
                     PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
@@ -39,7 +47,11 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
 
                 callbackID = callbackContext;
-                UnityAds.show(cordova.getActivity());
+                if (videoAdPlacementId != null) {
+                    UnityAds.show(cordova.getActivity(), videoAdPlacementId);
+                } else {
+                    UnityAds.show(cordova.getActivity());
+                }
             }
             return true;
         }

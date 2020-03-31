@@ -37,9 +37,16 @@
             [playerMetaData setServerId:serverId];
             [playerMetaData commit];
         }
-
+        
+        if (command.arguments.count > 1) {
+            NSString* videoAdPlacementId = [command argumentAtIndex:1];
+            if (videoAdPlacementId != nil) {
+                [UnityAds show:self.viewController placementId:videoAdPlacementId];
+                return;
+            }
+        }
         [UnityAds show:self.viewController];
-        // TODO: add placement id [UnityAds show:self.viewController placementId:<#(nonnull NSString *)#>];
+        
     }
 }
 
