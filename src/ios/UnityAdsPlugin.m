@@ -65,12 +65,30 @@
 }
 
 - (void)unityAdsDidError:(UnityAdsError)error withMessage:(nonnull NSString *)message {
-
+    NSString *errorMessage = @"";
+    
+    if (error == kUnityAdsErrorNotInitialized) {
+        errorMessage = [@"NOT_INITIALIZED - " stringByAppendingString:message];
+    } else if (error == kUnityAdsErrorInitializedFailed) {
+        errorMessage = [@"INITIALIZE_FAILED - " stringByAppendingString:message];
+    } else {
+        errorMessage = [@"INTERNAL_ERROR - " stringByAppendingString:message];
+    }
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: errorMessage];
+    [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
 }
+
 
 - (void)unityAdsDidFinish:(nonnull NSString *)placementId withFinishState:(UnityAdsFinishState)state {
     if (state == kUnityAdsFinishStateCompleted) {
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
+        [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
+    } else if (state == kUnityAdsFinishStateSkipped) {
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"VIDEO_SKIPPED"];
+        [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
+    } else if (state == kUnityAdsFinishStateError) {
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"DID FINISH WITH ERROR"];
         [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
     }
 }

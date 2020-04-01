@@ -117,16 +117,31 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
         @Override
         public void onUnityAdsFinish(String s, UnityAds.FinishState finishState) {
-            if (finishState != UnityAds.FinishState.SKIPPED) {
+            if (finishState == UnityAds.FinishState.COMPLETED) {
                 callbackID.success();
-            } else {
+            } else if (finishState == UnityAds.FinishState.SKIPPED) {
                 callbackID.error("VIDEO_SKIPPED");
+            } else {
+                callbackID.error("DID FINISH WITH ERROR");
             }
         }
 
         @Override
-        public void onUnityAdsError(UnityAds.UnityAdsError unityAdsError, String s) {
-            callbackID.error(s);
+        public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
+            String msg;
+
+            Log.d(TAG, String.format("%s", "onUnityAdsError"));
+            Log.d(TAG, String.format("%s", message));
+
+            if(error == UnityAds.UnityAdsError.NOT_INITIALIZED){
+                msg = String.format("[\"%s\",\"%s\"]", message, "NOT_INITIALIZED");
+            }else if(error == UnityAds.UnityAdsError.INITIALIZE_FAILED){
+                msg = String.format("[\"%s\",\"%s\"]", message, "INITIALIZE_FAILED");
+            }else{
+                msg = String.format("[\"%s\",\"%s\"]", message, "INTERNAL_ERROR");
+            }
+
+            callbackID.error(msg);
         }
 
         @Override
