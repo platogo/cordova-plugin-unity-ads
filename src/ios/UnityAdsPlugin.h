@@ -6,7 +6,7 @@
 - (void)show:(CDVInvokedUrlCommand*)command;
 @end
 
-@interface ViewController: UIViewController<UnityAdsDelegate>
+@interface ViewController: UIViewController<UnityAdsExtendedDelegate>
 @property (nonatomic, retain) UnityAdsPlugin* unityAdsPlugin;
 - (void)initialize:(UnityAdsPlugin *)unityAdsPlugin;
 - (void)unityAdsDidError:(UnityAdsError)error withMessage:(nonnull NSString *)message;
