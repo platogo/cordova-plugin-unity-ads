@@ -5,6 +5,7 @@
 
 - (void)initialize:(CDVInvokedUrlCommand*)command
 {
+    NSLog(@"unityAdsInitialize");
     if ([UnityAds isInitialized]) {
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -58,6 +59,7 @@
 
 - (void)initialize:(UnityAdsPlugin *)unityAdsPlugin_ {
     self.unityAdsPlugin = unityAdsPlugin_;
+    self.isInitialized = NO;
 }
 
 - (void)viewDidLoad {
@@ -98,8 +100,11 @@
 }
 
 - (void)unityAdsReady:(nonnull NSString *)placementId {
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
-    [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
+    if (!self.isInitialized) {        
+        self.isInitialized = YES;
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];;
+        [unityAdsPlugin.commandDelegate sendPluginResult:pluginResult callbackId:unityAdsPlugin.callbackId];
+    }
 }
 
 - (void)unityAdsDidClick:(nonnull NSString *)placementId {

@@ -14,6 +14,7 @@ import android.util.Log;
 public class UnityAdsPlugin extends CordovaPlugin {
     private CallbackContext callbackID;
     private static final String TAG = "UnityAds";
+    private boolean isInitialized = false;
 
 
     @Override
@@ -107,7 +108,10 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
         @Override
         public void onUnityAdsReady(String s) {
-            callbackID.success();
+            if (!isInitialized) {
+                isInitialized = true;
+                callbackID.success();
+            }
         }
 
         @Override

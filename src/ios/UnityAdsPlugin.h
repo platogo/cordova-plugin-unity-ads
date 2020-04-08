@@ -8,6 +8,7 @@
 
 @interface ViewController: UIViewController<UnityAdsExtendedDelegate>
 @property (nonatomic, retain) UnityAdsPlugin* unityAdsPlugin;
+@property BOOL isInitialized;
 - (void)initialize:(UnityAdsPlugin *)unityAdsPlugin;
 - (void)unityAdsDidError:(UnityAdsError)error withMessage:(nonnull NSString *)message;
 - (void)unityAdsDidFinish:(nonnull NSString *)placementId withFinishState:(UnityAdsFinishState)state;
