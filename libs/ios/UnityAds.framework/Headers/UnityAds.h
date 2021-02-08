@@ -31,6 +31,11 @@
 #import "UADSBannerView.h"
 #import "UADSBannerViewDelegate.h"
 #import "UADSBannerError.h"
+#import "UnityAdsInitializationError.h"
+#import "UnityAdsInitializationDelegate.h"
+#import "UnityAdsLoadDelegate.h"
+#import "UADSLoadOptions.h"
+#import "UADSShowOptions.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -64,6 +69,15 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Initializes UnityAds. UnityAds should be initialized when app starts.
  *
+ *  @param gameId   Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
+ *  @param initializationDelegate delegate for UnityAdsInitialization
+ */
++ (void)initialize:(NSString *)gameId
+        initializationDelegate:(nullable id<UnityAdsInitializationDelegate>)initializationDelegate;
+
+/**
+ *  Initializes UnityAds. UnityAds should be initialized when app starts.
+ *
  *  @param gameId        Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
  *  @param delegate      delegate for UnityAdsDelegate callbacks
  *  @param testMode      Set this flag to `YES` to indicate test mode and show only test ads.
@@ -73,13 +87,24 @@ NS_ASSUME_NONNULL_BEGIN
           testMode:(BOOL)testMode __attribute__((deprecated("Please migrate to using initialize without a delegate and add the delegate with the addDelegate method")));
 
 /**
-*  Initializes UnityAds. UnityAds should be initialized when app starts.
-*
-*  @param gameId        Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
-*  @param testMode      Set this flag to `YES` to indicate test mode and show only test ads.
-*/
+ *  Initializes UnityAds. UnityAds should be initialized when app starts.
+ *
+ *  @param gameId        Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
+ *  @param testMode      Set this flag to `YES` to indicate test mode and show only test ads.
+ */
 + (void)initialize:(NSString *)gameId
           testMode:(BOOL)testMode;
+
+/**
+ * Initializes UnityAds. UnityAds should be initialized when app starts.
+ *
+ *  @param gameId        Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
+ *  @param testMode      Set this flag to `YES` to indicate test mode and show only test ads.
+ *  @param initializationDelegate delegate for UnityAdsInitialization
+ */
++ (void)initialize:(NSString *)gameId
+          testMode:(BOOL)testMode
+          initializationDelegate:(nullable id<UnityAdsInitializationDelegate>)initializationDelegate;
 
 /**
  *  Initializes UnityAds. UnityAds should be initialized when app starts.
@@ -108,12 +133,50 @@ NS_ASSUME_NONNULL_BEGIN
     enablePerPlacementLoad:(BOOL)enablePerPlacementLoad;
 
 /**
+ *  Initializes UnityAds. UnityAds should be initialized when app starts.
+ *  Note: The `load` API is in closed beta and available upon invite only. If you would like to be considered for the beta, please contact Unity Ads Support.
+ *
+ *  @param gameId        Unique identifier for a game, given by Unity Ads admin tools or Unity editor.
+ *  @param testMode      Set this flag to `YES` to indicate test mode and show only test ads.
+ *  @param enablePerPlacementLoad Set this flag to `YES` to disable automatic placement caching. When this is enabled, developer must call `load` on placements before calling show
+ *  @param initializationDelegate delegate for UnityAdsInitialization
+ */
++ (void)initialize:(NSString *)gameId
+                  testMode:(BOOL)testMode
+    enablePerPlacementLoad:(BOOL)enablePerPlacementLoad
+    initializationDelegate:(nullable id<UnityAdsInitializationDelegate>)initializationDelegate;
+
+/**
  *  Load a placement to make it available to show. Ads generally take a few seconds to finish loading before they can be shown.
  *  Note: The `load` API is in closed beta and available upon invite only. If you would like to be considered for the beta, please contact Unity Ads Support.
  *
  *  @param placementId The placement ID, as defined in Unity Ads admin tools.
  */
 + (void)load:(NSString *)placementId;
+
+/**
+ *  Load a placement to make it available to show. Ads generally take a few seconds to finish loading before they can be shown.
+ *  Note: The `load` API is in closed beta and available upon invite only. If you would like to be considered for the beta, please contact Unity Ads Support.
+ *
+ *  @param placementId The placement ID, as defined in Unity Ads admin tools.
+ *  @param loadDelegate The load delegate.
+ */
++ (void) load:(NSString *)placementId
+ loadDelegate:(nullable id<UnityAdsLoadDelegate>)loadDelegate;
+
+/**
+ *  Load a placement to make it available to show. Ads generally take a few seconds to finish loading before they can be shown.
+ *  Note: The `load` API is in closed beta and available upon invite only. If you would like to be considered for the beta, please contact Unity Ads Support.
+ *
+ *  @param placementId The placement ID, as defined in Unity Ads admin tools.
+ *  @param options The load options.
+ *  @param loadDelegate The load delegate.
+ */
++ (void) load:(NSString *)placementId
+      options:(UADSLoadOptions *)options
+ loadDelegate:(nullable id<UnityAdsLoadDelegate>)loadDelegate;
+
+
 /**
  *  Show an ad using the defaul placement.
  *
@@ -127,6 +190,14 @@ NS_ASSUME_NONNULL_BEGIN
  *  @param placementId    The placement ID, as defined in Unity Ads admin tools.
  */
 + (void)show:(UIViewController *)viewController placementId:(NSString *)placementId;
+/**
+ *  Show an ad using the provided placement ID.
+ *
+ *  @param viewController The `UIViewController` that is to present the ad view controller.
+ *  @param placementId    The placement ID, as defined in Unity Ads admin tools.
+ *  @param options    Additional options
+ */
++ (void)show:(UIViewController *)viewController placementId:(NSString *)placementId options:(UADSShowOptions *)options;
 /**
  *  Provides the currently assigned `UnityAdsDelegate`. Meant to support use of single delegate
  *
@@ -216,6 +287,12 @@ NS_ASSUME_NONNULL_BEGIN
  *  @return If `YES`, Unity Ads has been successfully initialized.
  */
 + (BOOL)isInitialized;
+/**
+ * Get request token.
+ *
+ * @return Active token or null if no active token is available.
+ */
++ (NSString* __nullable)getToken;
 
 @end
 
