@@ -1,12 +1,16 @@
 package com.platogo.cordova.unityads;
 
+import com.unity3d.ads.IUnityAdsLoadListener;
 import com.unity3d.ads.UnityAds;
-import com.unity3d.ads.mediation.IUnityAdsExtendedListener;
+import com.unity3d.ads.IUnityAdsInitializationListener;
+import com.unity3d.ads.IUnityAdsShowListener;
 import com.unity3d.ads.metadata.PlayerMetaData;
+import com.unity3d.ads.UnityAdsShowOptions;
 
 import org.apache.cordova.*;
 import org.json.JSONArray;
 import org.json.JSONException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
@@ -14,86 +18,145 @@ import android.util.Log;
 public class UnityAdsPlugin extends CordovaPlugin {
     private CallbackContext callbackID;
     private static final String TAG = "UnityAds";
-    private boolean isInitialized = false;
 
+    private AdsListener adsListener = new AdsListener();
+
+    public static String getVideoPlacementId(JSONArray args) {
+        try {
+            return args.getString(1);
+        } catch (JSONException e) {
+            Log.w(TAG, "get videoAdPlacementId failed" + e.getMessage());
+            return null;
+        }
+    }
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
     }
-    
+
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        callbackID = callbackContext;
         if ("initialize".equals(action)) {
-            callbackID = callbackContext;
-            new AdsListener().initialize(args, callbackContext);
+            adsListener.initialize(args, callbackContext);
             return true;
         } else if ("show".equals(action)) {
-            if (UnityAds.isReady()) {
-                String serverId = args.getString(0);
-                String videoAdPlacementId = args.getString(1);
-
-                if (serverId != "null") {
-                    PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
-                    playerMetaData.setServerId(serverId);
-                    playerMetaData.commit();
-                }
-
-
-                callbackID = callbackContext;
-                if (videoAdPlacementId != "null") {
-                    UnityAds.show(cordova.getActivity(), videoAdPlacementId);
-                } else {
-                    UnityAds.show(cordova.getActivity());
-                }
+            String placementId = getVideoPlacementId(args);
+            if (UnityAds.isInitialized() && placementId != null) {
+                adsListener.show(placementId);
             }
             return true;
         }
-        return false;  // Returning false results in a "MethodNotFound" error.
+        return false; // Returning false results in a "MethodNotFound" error.
     }
 
     /*
      * Returns application context
      */
-    private Context getApplicationContext(){
+    private Context getApplicationContext() {
         return this.getApplicationActivity().getApplicationContext();
     }
 
     /*
-     * Returns application context
+     * Returns application activity
      */
-    private Activity getApplicationActivity(){
+    private Activity getApplicationActivity() {
         return this.cordova.getActivity();
     }
 
-    private class AdsListener implements IUnityAdsExtendedListener {
+    private class AdsListener implements IUnityAdsInitializationListener {
+        private JSONArray args;
+
+        private IUnityAdsShowListener showListener = new IUnityAdsShowListener() {
+            @Override
+            public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
+                Log.d(TAG, String.format("videoAdPlacementId: %s %s", placementId, "onUnityAdsError"));
+                Log.d(TAG, String.format("%s", message));
+                callbackID.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
+            }
+
+            @Override
+            public void onUnityAdsShowStart(String placementId) {
+                Log.v("UnityAdsExample", "onUnityAdsShowStart: " + placementId);
+            }
+
+            @Override
+            public void onUnityAdsShowClick(String placementId) {
+                Log.v(TAG, "CLICKED" + placementId);
+                callbackID.success();
+            }
+
+            @Override
+            public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
+                if (state == UnityAds.UnityAdsShowCompletionState.COMPLETED) {
+                    callbackID.success();
+                } else if (state == UnityAds.UnityAdsShowCompletionState.SKIPPED) {
+                    callbackID.error("VIDEO_SKIPPED");
+                } else {
+                    callbackID.error("DID FINISH WITH ERROR");
+                }
+            }
+        };
+
+        private IUnityAdsLoadListener adsLoadListener = new IUnityAdsLoadListener() {
+            @Override
+            public void onUnityAdsAdLoaded(String videoAdPlacementId) {
+                UnityAds.show(getApplicationActivity(), videoAdPlacementId, new UnityAdsShowOptions(), showListener);
+            }
+
+            @Override
+            public void onUnityAdsFailedToLoad(String s, UnityAds.UnityAdsLoadError unityAdsLoadError, String s1) {
+                Log.w(TAG, "onUnityAdsFailedToLoad");
+            }
+        };
+
+        public void show(String videoAdPlacementId) {
+            UnityAds.show(getApplicationActivity(), videoAdPlacementId, new UnityAdsShowOptions(), showListener);
+        }
+
+        private void onInitialized(JSONArray args) {
+            try {
+                String serverId = args.getString(0);
+                if (serverId != null) {
+                    PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
+                    playerMetaData.setServerId(serverId);
+                    playerMetaData.commit();
+                }
+            } catch (JSONException e) {
+                Log.w(TAG, "serverId arg missing!");
+            }
+
+            String videoAdPlacementId = getVideoPlacementId(args);
+            if (videoAdPlacementId != null) {
+                UnityAds.load(videoAdPlacementId, adsLoadListener);
+            }
+        }
+
         private void initialize(JSONArray args, CallbackContext callbackContext) {
             callbackID = callbackContext;
-            if (UnityAds.isInitialized()) {
-                callbackID.success();
-                return;
-            }
+            this.args = args;
 
             String gameId;
             Boolean testMode = false;
             Boolean debugMode = false;
 
-            try{
+            try {
                 gameId = args.getString(0);
-            }catch(JSONException e){
+            } catch (JSONException e) {
                 callbackContext.error("Invalid Game ID");
                 return;
             }
 
             try {
                 testMode = args.getBoolean(1);
-            } catch (JSONException e){
+            } catch (JSONException e) {
                 Log.w(TAG, "Warning: Test mode not set");
             }
 
             try {
                 debugMode = args.getBoolean(2);
-            } catch (JSONException e){
+            } catch (JSONException e) {
                 Log.w(TAG, "Warning: Debug mode not set");
             }
 
@@ -103,60 +166,19 @@ public class UnityAdsPlugin extends CordovaPlugin {
             }
 
             UnityAds.setDebugMode(debugMode);
-            UnityAds.initialize(cordova.getActivity(), gameId, this, testMode);
+            UnityAds.initialize(getApplicationContext(), gameId, testMode, this);
         }
 
         @Override
-        public void onUnityAdsReady(String s) {
-            if (!isInitialized) {
-                isInitialized = true;
-                callbackID.success();
-            }
-        }
-
-        @Override
-        public void onUnityAdsStart(String s) {
-
-        }
-
-        @Override
-        public void onUnityAdsFinish(String s, UnityAds.FinishState finishState) {
-            if (finishState == UnityAds.FinishState.COMPLETED) {
-                callbackID.success();
-            } else if (finishState == UnityAds.FinishState.SKIPPED) {
-                callbackID.error("VIDEO_SKIPPED");
-            } else {
-                callbackID.error("DID FINISH WITH ERROR");
-            }
-        }
-
-        @Override
-        public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
-            String msg;
-
-            Log.d(TAG, String.format("%s", "onUnityAdsError"));
-            Log.d(TAG, String.format("%s", message));
-
-            if(error == UnityAds.UnityAdsError.NOT_INITIALIZED){
-                msg = String.format("[\"%s\",\"%s\"]", message, "NOT_INITIALIZED");
-            }else if(error == UnityAds.UnityAdsError.INITIALIZE_FAILED){
-                msg = String.format("[\"%s\",\"%s\"]", message, "INITIALIZE_FAILED");
-            }else{
-                msg = String.format("[\"%s\",\"%s\"]", message, "INTERNAL_ERROR");
-            }
-
-            callbackID.error(msg);
-        }
-
-        @Override
-        public void onUnityAdsClick(String s) {
+        public void onInitializationComplete() {
             callbackID.success();
+            this.onInitialized(this.args);
         }
 
         @Override
-        public void onUnityAdsPlacementStateChanged(String s, UnityAds.PlacementState placementState, UnityAds.PlacementState placementState1) {
-
+        public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
+            Log.w(TAG, "onInitializationFailed" + message);
+            String.format("[\"%s\",\"%s\"]", message, error.name());
         }
     }
 }
-
