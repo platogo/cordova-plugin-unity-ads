@@ -21,11 +21,13 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
     private AdsListener adsListener = new AdsListener();
 
-    public static String getVideoPlacementId(JSONArray args) {
+    public static String[] getVideoAdsParameters(JSONArray args) {
         try {
-            return args.getString(1);
+            String serverId = args.getString(0);
+            String placementId = args.getString(1);
+            return new String[]{ serverId, placementId };
         } catch (JSONException e) {
-            Log.w(TAG, "get videoAdPlacementId failed" + e.getMessage());
+            Log.w(TAG, "get getVideoAdsParameters failed" + e.getMessage());
             return null;
         }
     }
@@ -42,9 +44,9 @@ public class UnityAdsPlugin extends CordovaPlugin {
             adsListener.initialize(args, callbackContext);
             return true;
         } else if ("show".equals(action)) {
-            String placementId = getVideoPlacementId(args);
-            if (UnityAds.isInitialized() && placementId != null) {
-                adsListener.show(placementId);
+            String[] videoAdsParameters = getVideoAdsParameters(args);
+            if (UnityAds.isInitialized() && videoAdsParameters != null) {
+                adsListener.show(videoAdsParameters);
             }
             return true;
         }
@@ -66,8 +68,6 @@ public class UnityAdsPlugin extends CordovaPlugin {
     }
 
     private class AdsListener implements IUnityAdsInitializationListener {
-        private JSONArray args;
-
         private IUnityAdsShowListener showListener = new IUnityAdsShowListener() {
             @Override
             public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
@@ -113,32 +113,22 @@ public class UnityAdsPlugin extends CordovaPlugin {
             }
         };
 
-        public void show(String videoAdPlacementId) {
-            UnityAds.show(getApplicationActivity(), videoAdPlacementId, new UnityAdsShowOptions(), showListener);
-        }
-
-        private void onInitialized(JSONArray args) {
-            try {
-                String serverId = args.getString(0);
-                if (serverId != null) {
-                    PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
-                    playerMetaData.setServerId(serverId);
-                    playerMetaData.commit();
-                }
-            } catch (JSONException e) {
+        public void show(String[] videoAdParameters) {
+            String serverId = videoAdParameters[0];
+            if (serverId != null) {
+                PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
+                playerMetaData.setServerId(serverId);
+                playerMetaData.commit();
+            } else {
                 Log.w(TAG, "serverId arg missing!");
             }
 
-            String videoAdPlacementId = getVideoPlacementId(args);
-            if (videoAdPlacementId != null) {
-                UnityAds.load(videoAdPlacementId, adsLoadListener);
-            }
+            String videoAdPlacementId =  videoAdParameters[1];
+            UnityAds.load(videoAdPlacementId, adsLoadListener);
         }
 
         private void initialize(JSONArray args, CallbackContext callbackContext) {
             callbackID = callbackContext;
-            this.args = args;
-
             String gameId;
             boolean testMode = false;
             boolean debugMode = false;
@@ -174,7 +164,6 @@ public class UnityAdsPlugin extends CordovaPlugin {
         @Override
         public void onInitializationComplete() {
             callbackID.success();
-            this.onInitialized(this.args);
         }
 
         @Override
