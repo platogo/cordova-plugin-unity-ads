@@ -180,7 +180,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
         @Override
         public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
             Log.w(TAG, "onInitializationFailed" + message);
-            callbackId.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
+            callbackID.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
         }
     }
 }
