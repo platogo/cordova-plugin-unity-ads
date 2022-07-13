@@ -36,7 +36,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
     }
 
     @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
         callbackID = callbackContext;
         if ("initialize".equals(action)) {
             adsListener.initialize(args, callbackContext);
@@ -106,8 +106,10 @@ public class UnityAdsPlugin extends CordovaPlugin {
             }
 
             @Override
-            public void onUnityAdsFailedToLoad(String s, UnityAds.UnityAdsLoadError unityAdsLoadError, String s1) {
-                Log.w(TAG, "onUnityAdsFailedToLoad");
+            public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
+                Log.d(TAG, String.format("videoAdPlacementId: %s %s", placementId, "onUnityAdsFailedToLoad"));
+                Log.d(TAG, String.format("%s", message));
+                callbackID.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
             }
         };
 
@@ -138,8 +140,8 @@ public class UnityAdsPlugin extends CordovaPlugin {
             this.args = args;
 
             String gameId;
-            Boolean testMode = false;
-            Boolean debugMode = false;
+            boolean testMode = false;
+            boolean debugMode = false;
 
             try {
                 gameId = args.getString(0);
@@ -178,7 +180,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
         @Override
         public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
             Log.w(TAG, "onInitializationFailed" + message);
-            String.format("[\"%s\",\"%s\"]", message, error.name());
+            callbackId.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
         }
     }
 }
