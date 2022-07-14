@@ -22,7 +22,7 @@
         [UnityAds setDebugMode:debugMode];
         [UnityAds initialize:gameId delegate:[vc self] testMode: testMode];
     } else {        
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"Game id imssing:"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"Game id missing:"];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
 }
