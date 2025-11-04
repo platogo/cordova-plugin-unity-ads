@@ -18,6 +18,9 @@ import android.util.Log;
 public class UnityAdsPlugin extends CordovaPlugin {
     private CallbackContext callbackID;
     private static final String TAG = "UnityAds";
+    private static final String ACTION_INITIALIZE = "initialize";
+    private static final String ACTION_SHOW = "show";
+    private static final String INVALID_GAME_ID = "null";
 
     private AdsListener adsListener = new AdsListener();
 
@@ -25,7 +28,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
         try {
             String serverId = args.getString(0);
             String placementId = args.getString(1);
-            return new String[]{ serverId, placementId };
+            return new String[] { serverId, placementId };
         } catch (JSONException e) {
             Log.w(TAG, "get getVideoAdsParameters failed" + e.getMessage());
             return null;
@@ -40,10 +43,11 @@ public class UnityAdsPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
         callbackID = callbackContext;
-        if ("initialize".equals(action)) {
+        if (ACTION_INITIALIZE.equals(action)) {
             adsListener.initialize(args, callbackContext);
             return true;
-        } else if ("show".equals(action)) {
+        }
+        if (ACTION_SHOW.equals(action)) {
             String[] videoAdsParameters = getVideoAdsParameters(args);
             if (UnityAds.isInitialized() && videoAdsParameters != null) {
                 adsListener.show(videoAdsParameters);
@@ -89,13 +93,15 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
             @Override
             public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
-                if (state == UnityAds.UnityAdsShowCompletionState.COMPLETED) {
+                if (UnityAds.UnityAdsShowCompletionState.COMPLETED.equals(state)) {
                     callbackID.success();
-                } else if (state == UnityAds.UnityAdsShowCompletionState.SKIPPED) {
-                    callbackID.error("VIDEO_SKIPPED");
-                } else {
-                    callbackID.error("DID FINISH WITH ERROR");
+                    return;
                 }
+                if (UnityAds.UnityAdsShowCompletionState.SKIPPED.equals(state)) {
+                    callbackID.error("VIDEO_SKIPPED");
+                    return;
+                }
+                callbackID.error("DID FINISH WITH ERROR");
             }
         };
 
@@ -123,7 +129,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
                 Log.w(TAG, "serverId arg missing!");
             }
 
-            String videoAdPlacementId =  videoAdParameters[1];
+            String videoAdPlacementId = videoAdParameters[1];
             UnityAds.load(videoAdPlacementId, adsLoadListener);
         }
 
@@ -152,7 +158,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
                 Log.w(TAG, "Warning: Debug mode not set");
             }
 
-            if (gameId == "null") {
+            if (INVALID_GAME_ID.equals(gameId)) {
                 callbackContext.error("Invalid Game ID");
                 return;
             }
