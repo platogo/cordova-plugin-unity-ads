@@ -1,12 +1,9 @@
 repositories{
-    jcenter()
-    flatDir {
-        dirs 'libs/android/', 'src/main/libs/android/'
-    }
+    mavenCentral()
 }
 
 dependencies {
-    implementation(name:'unity-ads', ext:'aar')
+  implementation 'com.unity3d.ads:unity-ads:4.16.3'
 }
 
 android {
