@@ -2,20 +2,26 @@
 
 ## Usage
 
-### initialize
+### Initialize
 
-`UnityAds.initialize(UnityAdsGameId: string, testMode: boolean, debugMode: boolean): Promise`
+```typescript
+UnityAds.initialize(UnityAdsGameId: string, testMode: boolean, debugMode: boolean): Promise
+```
 
-`Promise` will be resolved on success and rejected on failure.
+- The `Promise` will be resolved on success and rejected on failure (for example the device is not capable of receiving ads)
 
-### show ad
+### Show an ad
 
-`UnityAds.show(serverId?: string, videoAdPlacementId?: string): Promise`
+```typescript
+UnityAds.show(serverId?: string, videoAdPlacementId?: string): Promise
+```
 
-`Promise` will be resolved after video has been successfully watched.
-`Promise` will be rejected if video has been skiped or other failures.
+- The `Promise` will be resolved after video has been successfully watched.
+- The `Promise` will be rejected if video could not be loaded, a failure happened while showing the video, the video was skipped, canceled or another issue
 
 ## How to update the SDK
 
-- Download the SDK version from Unity: [Android](https://github.com/Unity-Technologies/unity-ads-android/releases) & [iOS](https://github.com/Unity-Technologies/unity-ads-ios/releases)
-- Copy the files into the `libs` folder
+- Make sure to check the [Changelog](https://docs.unity.com/en-us/grow/ads/changelog) from Unity
+- Bump the SDK version in the `plugin.xml` file
+  - For `Android` in the `UNITY_ADS_VERSION` preference
+  - For `iOS` in the podpsec definition `<pod name="UnityAds" spec="X.Y.Z" />` where `X.Y.Z` is the exact version
