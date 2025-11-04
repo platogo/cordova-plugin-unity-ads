@@ -28,6 +28,8 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     @objc func show(_ command: CDVInvokedUrlCommand) {
         self.currentCallbackId = command.callbackId
         if !UnityAds.isInitialized() {
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Unity Ads not initialized")
+            self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
             return
         }
         guard let serverId = command.argument(at: 0) as? String, !serverId.isEmpty else {
@@ -69,10 +71,7 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     }
     
     func unityAdsShowClick(_ placementId: String) {
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "adClicked")
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(pluginResult, callbackId: callbackId)
-        }
+        // Ad clicked
     }
     
     func unityAdsShowComplete(_ placementId: String, withFinish state: UnityAdsShowCompletionState) {
