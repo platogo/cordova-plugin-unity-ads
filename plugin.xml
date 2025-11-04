@@ -16,8 +16,11 @@
                 <param name="onload" value="true" />
             </feature>
         </config-file>
+        <preference name="UNITY_ADS_VERSION" default="4.16.3" />
+
 
         <framework src="src/android/UnityAdsPlugin.gradle" custom="true" type="gradleReference" />
+        <framework src="com.unity3d.ads:unity-ads:$UNITY_ADS_VERSION" />
         <source-file src="src/android/UnityAdsPlugin.java" target-dir="src/com/platogo/cordova/unityads" />
     </platform>
 
@@ -31,7 +34,7 @@
         <source-file src="src/ios/UnityAdsPlugin.swift" />
         <podspec>
             <config>
-                <source url="https://github.com/CocoaPods/Specs.git"/>
+                <source url="https://cdn.cocoapods.org/"/>
             </config>
             <pods use-frameworks="true">
                 <pod name="UnityAds" spec="4.16.3" />

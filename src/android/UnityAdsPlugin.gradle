@@ -2,10 +2,6 @@ repositories{
     mavenCentral()
 }
 
-dependencies {
-  implementation 'com.unity3d.ads:unity-ads:4.16.3'
-}
-
 android {
     packagingOptions {
         exclude 'META-INF/NOTICE'
