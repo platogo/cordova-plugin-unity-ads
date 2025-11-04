@@ -24,4 +24,4 @@ UnityAds.show(serverId?: string, videoAdPlacementId?: string): Promise
 - Make sure to check the [Changelog](https://docs.unity.com/en-us/grow/ads/changelog) from Unity
 - Bump the SDK version in the `plugin.xml` file
   - For `Android` in the `UNITY_ADS_VERSION` preference
-  - For `iOS` in the podpsec definition `<pod name="UnityAds" spec="X.Y.Z" />` where `X.Y.Z` is the exact version
+  - For `iOS` in the podspec definition `<pod name="UnityAds" spec="X.Y.Z" />` where `X.Y.Z` is the exact version
