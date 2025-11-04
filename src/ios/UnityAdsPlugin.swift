@@ -4,10 +4,14 @@ import UnityAds
 
 @objc(UnityAdsPlugin)
 class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDelegate, UnityAdsLoadDelegate {
-    var currentCallbackId: String?
+    private var callbackIds: [String: String] = [:]
+    private let callbackQueue = DispatchQueue(label: "com.platogo.unityads.callbacks")
+    private let initializationKey = "initialization"
     
     @objc func initialize(_ command: CDVInvokedUrlCommand) {
-        self.currentCallbackId = command.callbackId
+        callbackQueue.sync {
+            self.callbackIds[initializationKey] = command.callbackId
+        }
         if UnityAds.isInitialized() {
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
             self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
@@ -26,7 +30,6 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     
     
     @objc func show(_ command: CDVInvokedUrlCommand) {
-        self.currentCallbackId = command.callbackId
         if !UnityAds.isInitialized() {
             return
         }
@@ -40,6 +43,9 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
             self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
             return
         }
+        callbackQueue.sync {
+            self.callbackIds[placementId] = command.callbackId
+        }
         let metaData = UADSPlayerMetaData()
         metaData.setServerId(serverId)
         metaData.commit()
@@ -50,15 +56,21 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     
     func initializationComplete() {
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        callbackQueue.sync {
+            if let callbackId = self.callbackIds[initializationKey] {
+                self.commandDelegate.send(pluginResult, callbackId: callbackId)
+                self.callbackIds.removeValue(forKey: initializationKey)
+            }
         }
     }
     
     func initializationFailed(_ error: UnityAdsInitializationError, withMessage message: String) {
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "\(error): \(message)")
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        callbackQueue.sync {
+            if let callbackId = self.callbackIds[initializationKey] {
+                self.commandDelegate.send(pluginResult, callbackId: callbackId)
+                self.callbackIds.removeValue(forKey: initializationKey)
+            }
         }
     }
     
@@ -70,8 +82,11 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     
     func unityAdsShowClick(_ placementId: String) {
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "adClicked")
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        pluginResult?.setKeepCallbackAs(true)
+        callbackQueue.sync {
+            if let callbackId = self.callbackIds[placementId] {
+                self.commandDelegate.send(pluginResult, callbackId: callbackId)
+            }
         }
     }
     
@@ -85,15 +100,21 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
         @unknown default:
             result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "unknown")
         }
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(result, callbackId: callbackId)
+        callbackQueue.sync {
+            if let callbackId = self.callbackIds[placementId] {
+                self.commandDelegate.send(result, callbackId: callbackId)
+                self.callbackIds.removeValue(forKey: placementId)
+            }
         }
     }
     
     func unityAdsShowFailed(_ placementId: String, withError error: UnityAdsShowError, withMessage message: String) {
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "\(error): \(message)")
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        callbackQueue.sync {
+            if let callbackId = self.callbackIds[placementId] {
+                self.commandDelegate.send(pluginResult, callbackId: callbackId)
+                self.callbackIds.removeValue(forKey: placementId)
+            }
         }
     }
     
@@ -105,8 +126,11 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     
     func unityAdsAdFailed(toLoad placementId: String, withError error: UnityAdsLoadError, withMessage message: String) {
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "\(error): \(message)")
-        if let callbackId = self.currentCallbackId {
-            self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        callbackQueue.sync {
+            if let callbackId = self.callbackIds[placementId] {
+                self.commandDelegate.send(pluginResult, callbackId: callbackId)
+                self.callbackIds.removeValue(forKey: placementId)
+            }
         }
     }
     
