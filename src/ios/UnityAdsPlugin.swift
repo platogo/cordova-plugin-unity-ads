@@ -71,9 +71,12 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     }
     
     func unityAdsShowClick(_ placementId: String) {
-        // Ad clicked
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
+        if let callbackId = self.currentCallbackId {
+            self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        }
     }
-    
+
     func unityAdsShowComplete(_ placementId: String, withFinish state: UnityAdsShowCompletionState) {
         var result: CDVPluginResult
         switch state {
