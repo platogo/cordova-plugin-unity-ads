@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        id="cordova-plugin-unity-ads" version="0.0.1">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-unity-ads" version="0.0.1">
     <name>Unity Ads</name>
     <description>Cordova Unity Ads</description>
     <license>Apache 2.0</license>
@@ -17,10 +16,11 @@
                 <param name="onload" value="true" />
             </feature>
         </config-file>
+        <preference name="UNITY_ADS_VERSION" default="4.16.3" />
+
 
         <framework src="src/android/UnityAdsPlugin.gradle" custom="true" type="gradleReference" />
-        <resource-file src="libs/android/unity-ads.aar" target="libs/android/unity-ads.aar"  />
-
+        <framework src="com.unity3d.ads:unity-ads:$UNITY_ADS_VERSION" />
         <source-file src="src/android/UnityAdsPlugin.java" target-dir="src/com/platogo/cordova/unityads" />
     </platform>
 
@@ -31,9 +31,14 @@
                 <param name="onload" value="true" />
             </feature>
         </config-file>
-
-        <header-file src="src/ios/UnityAdsPlugin.h" />
-        <source-file src="src/ios/UnityAdsPlugin.m" />
-        <framework src="libs/ios/UnityAds.framework" custom="true" />
-    </platform>    
+        <source-file src="src/ios/UnityAdsPlugin.swift" />
+        <podspec>
+            <config>
+                <source url="https://cdn.cocoapods.org/"/>
+            </config>
+            <pods use-frameworks="true">
+                <pod name="UnityAds" spec="4.16.3" />
+            </pods>
+        </podspec>
+    </platform>
 </plugin>
