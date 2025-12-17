@@ -1,5 +1,11 @@
 # Change Log
 
+## [2.0.0]
+
+### Changes
+
+- [BREAKING] Now the plugin requires targeting iOS 15.0
+
 ## [1.0.0]
 
 ### Changes
