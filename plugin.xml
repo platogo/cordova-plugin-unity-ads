@@ -25,12 +25,12 @@
     </platform>
 
     <platform name="ios">
-        <preference name="deployment-target" value="15.0" />
         <config-file target="config.xml" parent="/*">
             <feature name="UnityAdsPlugin">
                 <param name="ios-package" value="UnityAdsPlugin" />
                 <param name="onload" value="true" />
             </feature>
+            <preference name="deployment-target" value="15.0" />
         </config-file>
         <source-file src="src/ios/UnityAdsPlugin.swift" />
         <podspec>
