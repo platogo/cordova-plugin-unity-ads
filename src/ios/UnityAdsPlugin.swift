@@ -22,8 +22,8 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
         }
         let testMode = (command.argument(at: 1) as? Bool) ?? false
         let debugMode = (command.argument(at: 2) as? Bool) ?? false
-        UnityAds.setDebugMode(false)
-        UnityAds.initialize(gameId, testMode: false, initializationDelegate: self)
+        UnityAds.setDebugMode(debugMode)
+        UnityAds.initialize(gameId, testMode: testMode, initializationDelegate: self)
     }
     
     
