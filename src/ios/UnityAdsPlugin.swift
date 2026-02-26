@@ -87,7 +87,7 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
         case .showCompletionStateSkipped:
             result = constructPluginError(message: "skipped", error: "SKIPPED")
         @unknown default:
-            result = constructPluginError(message: "unknown", error: "unknown")
+            result = constructPluginError(message: "unknown", error: "UNKNOWN")
         }
         if let callbackId = self.currentCallbackId {
             self.commandDelegate.send(result, callbackId: callbackId)
@@ -198,7 +198,8 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
                return CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "[\"Error when parsing SDK failure\", \"JSON_PARSE_FAILED\"]")
             }
         } catch {
-            return CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "[\"Error when parsing SDK failure\", \"JSON_PARSE_FAILED\"]")        }
+            return CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "[\"Error when parsing SDK failure\", \"JSON_PARSE_FAILED\"]")        
+        }
     }
     
 }
