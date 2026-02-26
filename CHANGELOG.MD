@@ -1,10 +1,11 @@
 # Change Log
 
-## [2.0.1]
+## [2.1.0]
 
 ### Changes
 
-- Now error codes for return values to CDV are parsed using the error enums and return proper strings instead of raw values
+- (iOS) Now error codes for return values to CDV are parsed using the error enums and return proper strings instead of raw values
+- Error format is harmonized between Android & iOS
 
 ## [2.0.0]
 
