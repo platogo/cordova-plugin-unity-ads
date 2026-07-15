@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-unity-ads",
-  "version": "2.1.0",
+  "version": "4.19.0",
   "description": "Cordova Unity Ads",
   "cordova": {
     "id": "cordova-plugin-unity-ads",
