@@ -24,6 +24,10 @@ public class UnityAdsPlugin extends CordovaPlugin {
 
     private AdsListener adsListener = new AdsListener();
 
+    public static String getErrorMessage(String message, String error) {
+        return String.format("[\"%s\",\"%s\"]", message, error);
+    }
+
     public static String[] getVideoAdsParameters(JSONArray args) {
         try {
             String serverId = args.getString(0);
@@ -77,7 +81,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
             public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
                 Log.d(TAG, String.format("videoAdPlacementId: %s %s", placementId, "onUnityAdsError"));
                 Log.d(TAG, String.format("%s", message));
-                callbackID.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
+                callbackID.error(getErrorMessage(message, error.name()));
             }
 
             @Override
@@ -98,10 +102,10 @@ public class UnityAdsPlugin extends CordovaPlugin {
                     return;
                 }
                 if (UnityAds.UnityAdsShowCompletionState.SKIPPED.equals(state)) {
-                    callbackID.error("VIDEO_SKIPPED");
+                    callbackID.error(getErrorMessage("skipped", "SKIPPED"));
                     return;
                 }
-                callbackID.error("DID FINISH WITH ERROR");
+                callbackID.error(getErrorMessage("DID FINISH WITH ERROR", "ERROR"));
             }
         };
 
@@ -115,7 +119,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
             public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
                 Log.d(TAG, String.format("videoAdPlacementId: %s %s", placementId, "onUnityAdsFailedToLoad"));
                 Log.d(TAG, String.format("%s", message));
-                callbackID.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
+                callbackID.error(getErrorMessage(message, error.name()));
             }
         };
 
@@ -142,7 +146,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
             try {
                 gameId = args.getString(0);
             } catch (JSONException e) {
-                callbackContext.error("Invalid Game ID");
+                callbackContext.error(getErrorMessage("Invalid Game ID", "INVALID_GAME_ID"));
                 return;
             }
 
@@ -159,7 +163,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
             }
 
             if (INVALID_GAME_ID.equals(gameId)) {
-                callbackContext.error("Invalid Game ID");
+                callbackContext.error(getErrorMessage("Invalid Game ID", "INVALID_GAME_ID"));
                 return;
             }
 
@@ -175,7 +179,7 @@ public class UnityAdsPlugin extends CordovaPlugin {
         @Override
         public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
             Log.w(TAG, "onInitializationFailed" + message);
-            callbackID.error(String.format("[\"%s\",\"%s\"]", message, error.name()));
+            callbackID.error(getErrorMessage(message, error.name()));
         }
     }
 }

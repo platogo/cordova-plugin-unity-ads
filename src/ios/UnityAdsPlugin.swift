@@ -6,6 +6,8 @@ import UnityAds
 class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDelegate, UnityAdsLoadDelegate {
     var currentCallbackId: String?
     
+    // MARK: - Cordova exposed methods
+    
     @objc func initialize(_ command: CDVInvokedUrlCommand) {
         self.currentCallbackId = command.callbackId
         if UnityAds.isInitialized() {
@@ -14,7 +16,7 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
             return
         }
         guard let gameId = command.argument(at: 0) as? String, !gameId.isEmpty else {
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Game ID missing")
+            let pluginResult = constructPluginError(message: "Game ID missing", error: "GAME_ID_MISSING")
             self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
             return
         }
@@ -28,17 +30,17 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     @objc func show(_ command: CDVInvokedUrlCommand) {
         self.currentCallbackId = command.callbackId
         if !UnityAds.isInitialized() {
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Unity Ads not initialized")
+            let pluginResult = constructPluginError(message: "Unity Ads not initialized", error: "NOT_INITIALIZED")
             self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
             return
         }
         guard let serverId = command.argument(at: 0) as? String, !serverId.isEmpty else {
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Server ID missing")
+            let pluginResult = constructPluginError(message: "Server ID missing", error: "SERVER_ID_MISSING")
             self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
             return
         }
         guard let placementId = command.argument(at: 1) as? String, !placementId.isEmpty else {
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Placement ID missing")
+            let pluginResult = constructPluginError(message: "Placement ID missing", error: "PLACEMENT_ID_MISSING")
             self.commandDelegate.send(pluginResult, callbackId: command.callbackId)
             return
         }
@@ -58,7 +60,7 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     }
     
     func initializationFailed(_ error: UnityAdsInitializationError, withMessage message: String) {
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "\(error): \(message)")
+        let pluginResult = constructPluginError(message: message, error: error)
         if let callbackId = self.currentCallbackId {
             self.commandDelegate.send(pluginResult, callbackId: callbackId)
         }
@@ -83,9 +85,9 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
         case .showCompletionStateCompleted:
             result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "completed")
         case .showCompletionStateSkipped:
-            result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "skipped")
+            result = constructPluginError(message: "skipped", error: "SKIPPED")
         @unknown default:
-            result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "unknown")
+            result = constructPluginError(message: "unknown", error: "UNKNOWN")
         }
         if let callbackId = self.currentCallbackId {
             self.commandDelegate.send(result, callbackId: callbackId)
@@ -93,7 +95,7 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     }
     
     func unityAdsShowFailed(_ placementId: String, withError error: UnityAdsShowError, withMessage message: String) {
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "\(error): \(message)")
+        let pluginResult = constructPluginError(message: message, error: error)
         if let callbackId = self.currentCallbackId {
             self.commandDelegate.send(pluginResult, callbackId: callbackId)
         }
@@ -106,9 +108,97 @@ class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDel
     }
     
     func unityAdsAdFailed(toLoad placementId: String, withError error: UnityAdsLoadError, withMessage message: String) {
-        let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "\(error): \(message)")
+        let pluginResult = constructPluginError(message: message, error: error)
         if let callbackId = self.currentCallbackId {
             self.commandDelegate.send(pluginResult, callbackId: callbackId)
+        }
+    }
+    
+    // MARK: - Error String switches
+
+    private func loadErrorToString(_ error: UnityAdsLoadError) -> String {
+        switch error {
+            case .initializeFailed:
+                return "INITIALIZE_FAILED"
+            case .internal:
+                return "INTERNAL_ERROR"
+            case .invalidArgument:
+                return "INVALID_ARGUMENT"
+            case .noFill:
+                return "NO_FILL"
+            case .timeout:
+                return "TIMEOUT"
+            @unknown default:
+                return "UNKNOWN"
+        }
+    }
+    
+    private func showErrorToString(_ error: UnityAdsShowError) -> String {
+        switch error {
+            case .showErrorNotInitialized:
+                return "NOT_INITIALIZED"
+            case .showErrorNotReady:
+                return "NOT_READY"
+            case .showErrorVideoPlayerError:
+                return "VIDEO_PLAYER_ERROR"
+            case .showErrorInvalidArgument:
+                return "INVALID_ARGUMENT"
+            case .showErrorNoConnection:
+                return "NO_CONNECTION"
+            case .showErrorAlreadyShowing:
+                return "ALREADY_SHOWING"
+            case .showErrorInternalError:
+                return "INTERNAL_ERROR"
+            case .showErrorTimeout:
+                return "TIMEOUT"
+            @unknown default:
+                return "UNKNOWN"
+        }
+    }
+
+    private func initErrorToString(_ error: UnityAdsInitializationError) -> String {
+        switch error {
+            case .initializationErrorAdBlockerDetected:
+                return "AD_BLOCKER_DETECTED"
+            case .initializationErrorInternalError:
+                return "INTERNAL_ERROR"
+            case .initializationErrorInvalidArgument:
+                return "INVALID_ARGUMENT"
+            @unknown default:
+                return "UNKNOWN"
+        }
+    }
+    
+    // MARK: - Plugin Error Helpers
+
+    
+    private func constructPluginError(message: String, error: UnityAdsShowError) -> CDVPluginResult {
+        return constructPluginErrorResult(message: message, errorEnum: showErrorToString(error))
+    }
+    
+    private func constructPluginError(message: String, error: UnityAdsLoadError) -> CDVPluginResult {
+        return constructPluginErrorResult(message: message, errorEnum: loadErrorToString(error))
+    }
+    
+    private func constructPluginError(message: String, error: UnityAdsInitializationError) -> CDVPluginResult {
+        return constructPluginErrorResult(message: message, errorEnum: initErrorToString(error))
+    }
+    
+    private func constructPluginError(message: String, error: String) -> CDVPluginResult {
+        return constructPluginErrorResult(message: message, errorEnum: error)
+    }
+    
+    private func constructPluginErrorResult(message: String, errorEnum: String) -> CDVPluginResult {
+        do {
+            let messageStructure = [message, errorEnum]
+            let jsonData = try JSONSerialization.data(withJSONObject: messageStructure)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                return CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: jsonString)
+            } else {
+               return CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "[\"Error when parsing SDK failure\", \"JSON_PARSE_FAILED\"]")
+            }
+        } catch {
+            return CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "[\"Error when parsing SDK failure\", \"JSON_PARSE_FAILED\"]")        
         }
     }
     
