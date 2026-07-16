@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.19.0]
+
+### Changes
+- Updated Unity Ads SDK to 4.19.0
+- Aligned Plugin version with Unity Ads SDK version (for easier comparison and tracking of changes)
+
 ## [2.1.0]
 
 ### Changes
