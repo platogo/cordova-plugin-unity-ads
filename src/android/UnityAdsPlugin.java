@@ -25,7 +25,15 @@ public class UnityAdsPlugin extends CordovaPlugin {
     private AdsListener adsListener = new AdsListener();
 
     public static String getErrorMessage(String message, String error) {
-        return String.format("[\"%s\",\"%s\"]", message, error);
+        // The message comes from the Unity Ads SDK and can contain characters that are not
+        // valid inside a JSON string literal, most notably newlines.
+        // We see this in Sentry errors coming from Unity containing "errorEnum":"JSON_PARSE_FAILED"
+        // Building the array with JSONArray escapes them, so the client can parse it and read the error enum.
+        JSONArray errorMessage = new JSONArray();
+        errorMessage.put(message);
+        errorMessage.put(error);
+
+        return errorMessage.toString();
     }
 
     public static String[] getVideoAdsParameters(JSONArray args) {
