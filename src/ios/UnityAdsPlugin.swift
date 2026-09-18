@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import UnityAds
+import Cordova
 
 @objc(UnityAdsPlugin)
 class UnityAdsPlugin: CDVPlugin, UnityAdsInitializationDelegate, UnityAdsShowDelegate, UnityAdsLoadDelegate {
