@@ -24,7 +24,7 @@
         <source-file src="src/android/UnityAdsPlugin.java" target-dir="src/com/platogo/cordova/unityads" />
     </platform>
 
-    <platform name="ios">
+    <platform name="ios" package="swift">
         <config-file target="config.xml" parent="/*">
             <feature name="UnityAdsPlugin">
                 <param name="ios-package" value="UnityAdsPlugin" />
@@ -38,7 +38,7 @@
                 <source url="https://cdn.cocoapods.org/"/>
             </config>
             <pods use-frameworks="true">
-                <pod name="UnityAds" spec="4.19.0" />
+                <pod name="UnityAds" spec="4.19.0" nospm="true" />
             </pods>
         </podspec>
     </platform>
