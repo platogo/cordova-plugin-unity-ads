@@ -84,7 +84,7 @@ final class AdShowController: NSObject, UnityAdsLoadDelegate, UnityAdsShowDelega
     func unityAdsShowComplete(_ placementId: String, withFinish state: UnityAdsShowCompletionState) {
         switch state {
         case .showCompletionStateCompleted:
-            finishOnMain(with: CDVPluginResult(status: .ok, messageAs: "completed"))
+            finishOnMain(with: CDVPluginResult(status: .ok))
         case .showCompletionStateSkipped:
             finishOnMain(with: PluginError.result(message: "skipped", code: PluginError.skipped))
         @unknown default:

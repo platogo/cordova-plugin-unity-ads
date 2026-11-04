@@ -43,9 +43,10 @@ class UnityAdsPlugin: CDVPlugin {
 
     // MARK: - Argument helpers
 
-    // Missing, null and empty strings are all treated as missing
+    // Missing, null and blank strings are all treated as missing (same as Android)
     private func stringArgument(_ command: CDVInvokedUrlCommand, at index: UInt) -> String? {
-        guard let value = command.argument(at: index) as? String, !value.isEmpty else { return nil }
+        guard let value = (command.argument(at: index) as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty else { return nil }
         return value
     }
 

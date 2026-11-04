@@ -38,6 +38,10 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
             callbackContext.error(PluginErrors.payload("Unity Ads not initialized", PluginErrors.NOT_INITIALIZED));
             return;
         }
+        if (serverId == null) {
+            callbackContext.error(PluginErrors.payload("Server ID missing", PluginErrors.SERVER_ID_MISSING));
+            return;
+        }
         if (placementId == null) {
             callbackContext.error(PluginErrors.payload("Placement ID missing", PluginErrors.PLACEMENT_ID_MISSING));
             return;
@@ -53,12 +57,7 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
             callback = callbackContext;
         }
 
-        if (serverId != null) {
-            setServerId(serverId);
-        } else {
-            Log.w(TAG, "serverId arg missing!");
-        }
-
+        setServerId(serverId);
         UnityAds.load(placementId, this);
     }
 
