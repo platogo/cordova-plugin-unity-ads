@@ -22,6 +22,10 @@
         <framework src="src/android/UnityAdsPlugin.gradle" custom="true" type="gradleReference" />
         <framework src="com.unity3d.ads:unity-ads:$UNITY_ADS_VERSION" />
         <source-file src="src/android/UnityAdsPlugin.java" target-dir="src/com/platogo/cordova/unityads" />
+        <source-file src="src/android/InitializationController.java" target-dir="src/com/platogo/cordova/unityads" />
+        <source-file src="src/android/AdShowController.java" target-dir="src/com/platogo/cordova/unityads" />
+        <source-file src="src/android/PluginErrors.java" target-dir="src/com/platogo/cordova/unityads" />
+        <source-file src="src/android/PluginArgs.java" target-dir="src/com/platogo/cordova/unityads" />
     </platform>
 
     <platform name="ios" package="swift">
@@ -33,6 +37,9 @@
             <preference name="deployment-target" value="15.0" />
         </config-file>
         <source-file src="src/ios/UnityAdsPlugin.swift" />
+        <source-file src="src/ios/InitializationController.swift" />
+        <source-file src="src/ios/AdShowController.swift" />
+        <source-file src="src/ios/PluginError.swift" />
         <podspec>
             <config>
                 <source url="https://cdn.cocoapods.org/"/>
