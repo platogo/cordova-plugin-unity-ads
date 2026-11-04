@@ -19,6 +19,9 @@ enum PluginError {
     static let placementIdMissing = "PLACEMENT_ID_MISSING"
     static let serverIdMissing = "SERVER_ID_MISSING"
     static let notInitialized = "NOT_INITIALIZED"
+    static let alreadyShowing = "ALREADY_SHOWING"
+    // Same code as Android, where the Activity is what presents the ad
+    static let activityMissing = "ACTIVITY_MISSING"
     static let skipped = "SKIPPED"
     static let unknown = "UNKNOWN"
 

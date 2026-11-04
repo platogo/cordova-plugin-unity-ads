@@ -7,11 +7,20 @@ import Cordova
 
 // Loads and shows an ad and answers the show calls.
 //
+// Only one show runs at a time, a show call made while another one is pending is rejected
+// with ALREADY_SHOWING instead of taking over the pending callback.
+//
+// All state is only read and written on the main thread: Cordova calls the plugin methods there
+// and the SDK callbacks are moved there before touching it.
+//
 // Only this class talks to the SDK load/show API, so the Unity Ads 5.0.0 migration
 // (UADSRewardedAd.load + show) stays contained here.
 final class AdShowController: NSObject, UnityAdsLoadDelegate, UnityAdsShowDelegate {
     private weak var plugin: CDVPlugin?
     private var callbackId: String?
+    // Outlives the callback on reset, an ad that is still on screen
+    // must not be answered to a show call made after the reload.
+    private var showInProgress = false
 
     init(plugin: CDVPlugin) {
         self.plugin = plugin
@@ -30,6 +39,12 @@ final class AdShowController: NSObject, UnityAdsLoadDelegate, UnityAdsShowDelega
             send(PluginError.result(message: "Placement ID missing", code: PluginError.placementIdMissing), to: callbackId)
             return
         }
+        if showInProgress {
+            // Answering this call would drop the pending one, so the pending one keeps the slot
+            send(PluginError.result(message: "An ad is already loading or showing", code: PluginError.alreadyShowing), to: callbackId)
+            return
+        }
+        showInProgress = true
         self.callbackId = callbackId
         setServerId(serverId)
         UnityAds.load(placementId, loadDelegate: self)
@@ -43,12 +58,17 @@ final class AdShowController: NSObject, UnityAdsLoadDelegate, UnityAdsShowDelega
     // MARK: - UnityAdsLoadDelegate
 
     func unityAdsAdLoaded(_ placementId: String) {
-        guard let viewController = plugin?.viewController else { return }
-        UnityAds.show(viewController, placementId: placementId, showDelegate: self)
+        DispatchQueue.main.async {
+            guard let viewController = self.plugin?.viewController else {
+                self.finish(with: PluginError.result(message: "View controller not available to show the ad", code: PluginError.activityMissing))
+                return
+            }
+            UnityAds.show(viewController, placementId: placementId, showDelegate: self)
+        }
     }
 
     func unityAdsAdFailed(toLoad placementId: String, withError error: UnityAdsLoadError, withMessage message: String) {
-        finish(with: PluginError.result(message: message, error: error))
+        finishOnMain(with: PluginError.result(message: message, error: error))
     }
 
     // MARK: - UnityAdsShowDelegate
@@ -64,16 +84,16 @@ final class AdShowController: NSObject, UnityAdsLoadDelegate, UnityAdsShowDelega
     func unityAdsShowComplete(_ placementId: String, withFinish state: UnityAdsShowCompletionState) {
         switch state {
         case .showCompletionStateCompleted:
-            finish(with: CDVPluginResult(status: .ok, messageAs: "completed"))
+            finishOnMain(with: CDVPluginResult(status: .ok, messageAs: "completed"))
         case .showCompletionStateSkipped:
-            finish(with: PluginError.result(message: "skipped", code: PluginError.skipped))
+            finishOnMain(with: PluginError.result(message: "skipped", code: PluginError.skipped))
         @unknown default:
-            finish(with: PluginError.result(message: "unknown", code: PluginError.unknown))
+            finishOnMain(with: PluginError.result(message: "unknown", code: PluginError.unknown))
         }
     }
 
     func unityAdsShowFailed(_ placementId: String, withError error: UnityAdsShowError, withMessage message: String) {
-        finish(with: PluginError.result(message: message, error: error))
+        finishOnMain(with: PluginError.result(message: message, error: error))
     }
 
     // MARK: - Helpers
@@ -86,7 +106,15 @@ final class AdShowController: NSObject, UnityAdsLoadDelegate, UnityAdsShowDelega
         metaData.commit()
     }
 
+    private func finishOnMain(with result: CDVPluginResult) {
+        DispatchQueue.main.async {
+            self.finish(with: result)
+        }
+    }
+
+    // Ends the running show, the next show call can start
     private func finish(with result: CDVPluginResult) {
+        showInProgress = false
         guard let callbackId = callbackId else { return }
         self.callbackId = nil
         send(result, to: callbackId)

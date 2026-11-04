@@ -14,6 +14,7 @@ final class PluginErrors {
     static final String GAME_ID_MISSING = "GAME_ID_MISSING";
     static final String PLACEMENT_ID_MISSING = "PLACEMENT_ID_MISSING";
     static final String NOT_INITIALIZED = "NOT_INITIALIZED";
+    static final String ALREADY_SHOWING = "ALREADY_SHOWING";
     static final String ACTIVITY_MISSING = "ACTIVITY_MISSING";
     static final String SKIPPED = "SKIPPED";
     static final String UNKNOWN = "UNKNOWN";

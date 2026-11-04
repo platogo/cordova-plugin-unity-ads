@@ -22,8 +22,12 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
     private static final String TAG = "UnityAds";
 
     private final CordovaInterface cordova;
-    // volatile: show() runs on the WebCore thread, the SDK calls back on other threads.
-    private volatile CallbackContext callback;
+
+    // Guarded by this: show() runs on the WebCore thread, the SDK calls back on other threads.
+    // showInProgress outlives the callback on reset, an ad that is still on screen
+    // must not be answered to a show call made after the reload.
+    private CallbackContext callback;
+    private boolean showInProgress = false;
 
     AdShowController(CordovaInterface cordova) {
         this.cordova = cordova;
@@ -39,18 +43,27 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
             return;
         }
 
+        synchronized (this) {
+            if (showInProgress) {
+                // Answering this call would drop the pending one, so the pending one keeps the slot
+                callbackContext.error(PluginErrors.payload("An ad is already loading or showing", PluginErrors.ALREADY_SHOWING));
+                return;
+            }
+            showInProgress = true;
+            callback = callbackContext;
+        }
+
         if (serverId != null) {
             setServerId(serverId);
         } else {
             Log.w(TAG, "serverId arg missing!");
         }
 
-        callback = callbackContext;
         UnityAds.load(placementId, this);
     }
 
     // The WebView navigated or reloaded, nobody is listening to the old callback anymore
-    void reset() {
+    synchronized void reset() {
         callback = null;
     }
 
@@ -116,18 +129,24 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
     }
 
     private void finishWithSuccess() {
-        CallbackContext current = callback;
-        callback = null;
+        CallbackContext current = takeCallback();
         if (current != null) {
             current.success();
         }
     }
 
     private void finishWithError(String message, String code) {
-        CallbackContext current = callback;
-        callback = null;
+        CallbackContext current = takeCallback();
         if (current != null) {
             current.error(PluginErrors.payload(message, code));
         }
+    }
+
+    // Ends the running show, the next show call can start
+    private synchronized CallbackContext takeCallback() {
+        CallbackContext current = callback;
+        callback = null;
+        showInProgress = false;
+        return current;
     }
 }
