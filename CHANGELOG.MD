@@ -14,6 +14,12 @@
 - iOS: the SDK initialization runs in the background instead of blocking the main thread
 - iOS: `Cordova` import guarded with `#if canImport(Cordova)` as recommended by the Cordova iOS plugin guide
 - Bump `UnityAds` SDK to `4.21.0` on `Android` & `iOS`
+- `initialize` called again while the SDK is still initializing no longer initializes the SDK a second time, every waiting call gets the same result
+- `show` called while another ad is loading or showing rejects with `ALREADY_SHOWING` instead of taking over the pending call
+- Android: a missing server ID rejects with `SERVER_ID_MISSING` (same as iOS)
+- iOS: a completed ad resolves without a value (same as Android)
+- iOS: blank string arguments are treated as missing, a missing view controller rejects with `ACTIVITY_MISSING` (same as Android)
+- Native code split into a Cordova entry point, `InitializationController`, `AdShowController` and the error code mapping. The Unity Ads APIs deprecated in `4.19.0` (removed in `5.0.0`) are only used inside the controllers and the error mapping, so the `5.0.0` migration stays contained there
 
 ## [4.19.1]
 
