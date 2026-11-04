@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Initializes the Unity Ads SDK and answers the initialize calls.
@@ -33,15 +34,16 @@ final class InitializationController implements IUnityAdsInitializationListener 
         this.cordova = cordova;
     }
 
-    void initialize(String gameId, boolean testMode, boolean debugMode, CallbackContext callbackContext) {
+    void initialize(Optional<String> gameIdArg, boolean testMode, boolean debugMode, CallbackContext callbackContext) {
         if (UnityAds.isInitialized()) {
             callbackContext.success();
             return;
         }
-        if (gameId == null) {
+        if (!gameIdArg.isPresent()) {
             callbackContext.error(PluginErrors.payload("Game ID missing", PluginErrors.GAME_ID_MISSING));
             return;
         }
+        String gameId = gameIdArg.get();
 
         synchronized (this) {
             pendingCallbacks.add(callbackContext);

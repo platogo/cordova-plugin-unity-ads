@@ -12,6 +12,8 @@ import org.apache.cordova.CordovaInterface;
 import android.app.Activity;
 import android.util.Log;
 
+import java.util.Optional;
+
 /**
  * Loads and shows an ad and answers the show calls.
  *
@@ -26,26 +28,28 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
     // Guarded by this: show() runs on the WebCore thread, the SDK calls back on other threads.
     // showInProgress outlives the callback on reset, an ad that is still on screen
     // must not be answered to a show call made after the reload.
-    private CallbackContext callback;
+    private Optional<CallbackContext> callback = Optional.empty();
     private boolean showInProgress = false;
 
     AdShowController(CordovaInterface cordova) {
         this.cordova = cordova;
     }
 
-    void show(String serverId, String placementId, CallbackContext callbackContext) {
+    void show(Optional<String> serverIdArg, Optional<String> placementIdArg, CallbackContext callbackContext) {
         if (!UnityAds.isInitialized()) {
             callbackContext.error(PluginErrors.payload("Unity Ads not initialized", PluginErrors.NOT_INITIALIZED));
             return;
         }
-        if (serverId == null) {
+        if (!serverIdArg.isPresent()) {
             callbackContext.error(PluginErrors.payload("Server ID missing", PluginErrors.SERVER_ID_MISSING));
             return;
         }
-        if (placementId == null) {
+        if (!placementIdArg.isPresent()) {
             callbackContext.error(PluginErrors.payload("Placement ID missing", PluginErrors.PLACEMENT_ID_MISSING));
             return;
         }
+        String serverId = serverIdArg.get();
+        String placementId = placementIdArg.get();
 
         synchronized (this) {
             if (showInProgress) {
@@ -54,7 +58,7 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
                 return;
             }
             showInProgress = true;
-            callback = callbackContext;
+            callback = Optional.of(callbackContext);
         }
 
         setServerId(serverId);
@@ -63,20 +67,21 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
 
     // The WebView navigated or reloaded, nobody is listening to the old callback anymore
     synchronized void reset() {
-        callback = null;
+        callback = Optional.empty();
     }
 
     // MARK: - IUnityAdsLoadListener
 
     @Override
     public void onUnityAdsAdLoaded(String placementId) {
-        Activity activity = cordova.getActivity();
-        if (activity == null) {
+        Optional<Activity> activity = Optional.ofNullable(cordova.getActivity());
+        if (!activity.isPresent()) {
             finishWithError("Activity not available to show the ad", PluginErrors.ACTIVITY_MISSING);
             return;
         }
         // Showing the ad is UI work, Cordova recommends running it on the UI thread
-        activity.runOnUiThread(() -> UnityAds.show(activity, placementId, new UnityAdsShowOptions(), this));
+        Activity presenter = activity.get();
+        presenter.runOnUiThread(() -> UnityAds.show(presenter, placementId, new UnityAdsShowOptions(), this));
     }
 
     @Override
@@ -128,23 +133,19 @@ final class AdShowController implements IUnityAdsLoadListener, IUnityAdsShowList
     }
 
     private void finishWithSuccess() {
-        CallbackContext current = takeCallback();
-        if (current != null) {
-            current.success();
-        }
+        takeCallback().ifPresent(CallbackContext::success);
     }
 
     private void finishWithError(String message, String code) {
-        CallbackContext current = takeCallback();
-        if (current != null) {
-            current.error(PluginErrors.payload(message, code));
-        }
+        String payload = PluginErrors.payload(message, code);
+        takeCallback().ifPresent(current -> current.error(payload));
     }
 
-    // Ends the running show, the next show call can start
-    private synchronized CallbackContext takeCallback() {
-        CallbackContext current = callback;
-        callback = null;
+    // Ends the running show, the next show call can start.
+    // Empty when the WebView was reset while the ad was showing.
+    private synchronized Optional<CallbackContext> takeCallback() {
+        Optional<CallbackContext> current = callback;
+        callback = Optional.empty();
         showInProgress = false;
         return current;
     }

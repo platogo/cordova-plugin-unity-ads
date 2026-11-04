@@ -2,6 +2,8 @@ package com.platogo.cordova.unityads;
 
 import org.json.JSONArray;
 
+import java.util.Optional;
+
 /**
  * Owns the error codes the app relies on (UnityAdsPluginError in the app reads them).
  *
@@ -25,7 +27,7 @@ final class PluginErrors {
     // Maps a (deprecated) UnityAds error enum to the code sent to the app.
     // The enum names already match the codes the app expects.
     static String code(Enum<?> sdkError) {
-        return sdkError == null ? UNKNOWN : sdkError.name();
+        return Optional.ofNullable(sdkError).map(Enum::name).orElse(UNKNOWN);
     }
 
     static String payload(String message, String code) {
