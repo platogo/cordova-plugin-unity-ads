@@ -1,193 +1,50 @@
 package com.platogo.cordova.unityads;
 
-import com.unity3d.ads.IUnityAdsLoadListener;
-import com.unity3d.ads.UnityAds;
-import com.unity3d.ads.IUnityAdsInitializationListener;
-import com.unity3d.ads.IUnityAdsShowListener;
-import com.unity3d.ads.metadata.PlayerMetaData;
-import com.unity3d.ads.UnityAdsShowOptions;
-
-import org.apache.cordova.*;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
-import org.json.JSONException;
 
-import android.app.Activity;
-import android.content.Context;
-import android.util.Log;
-
+/**
+ * Cordova entry point. Reads the JS arguments and hands each action to its controller,
+ * the controllers own all Unity Ads SDK calls and their callback state.
+ */
 public class UnityAdsPlugin extends CordovaPlugin {
-    private CallbackContext callbackID;
-    private static final String TAG = "UnityAds";
     private static final String ACTION_INITIALIZE = "initialize";
     private static final String ACTION_SHOW = "show";
-    private static final String INVALID_GAME_ID = "null";
 
-    private AdsListener adsListener = new AdsListener();
-
-    public static String getErrorMessage(String message, String error) {
-        // The message comes from the Unity Ads SDK and can contain characters that are not
-        // valid inside a JSON string literal, most notably newlines.
-        // We see this in Sentry errors coming from Unity containing "errorEnum":"JSON_PARSE_FAILED"
-        // Building the array with JSONArray escapes them, so the client can parse it and read the error enum.
-        JSONArray errorMessage = new JSONArray();
-        errorMessage.put(message);
-        errorMessage.put(error);
-
-        return errorMessage.toString();
-    }
-
-    public static String[] getVideoAdsParameters(JSONArray args) {
-        try {
-            String serverId = args.getString(0);
-            String placementId = args.getString(1);
-            return new String[] { serverId, placementId };
-        } catch (JSONException e) {
-            Log.w(TAG, "get getVideoAdsParameters failed" + e.getMessage());
-            return null;
-        }
-    }
+    private InitializationController initializationController;
+    private AdShowController adShowController;
 
     @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
+    protected void pluginInitialize() {
+        initializationController = new InitializationController(cordova);
+        adShowController = new AdShowController(cordova);
     }
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
-        callbackID = callbackContext;
         if (ACTION_INITIALIZE.equals(action)) {
-            adsListener.initialize(args, callbackContext);
+            initializationController.initialize(
+                    PluginArgs.getString(args, 0),
+                    PluginArgs.getBoolean(args, 1),
+                    PluginArgs.getBoolean(args, 2),
+                    callbackContext);
             return true;
         }
         if (ACTION_SHOW.equals(action)) {
-            String[] videoAdsParameters = getVideoAdsParameters(args);
-            if (UnityAds.isInitialized() && videoAdsParameters != null) {
-                adsListener.show(videoAdsParameters);
-            }
+            adShowController.show(
+                    PluginArgs.getString(args, 0),
+                    PluginArgs.getString(args, 1),
+                    callbackContext);
             return true;
         }
         return false; // Returning false results in a "MethodNotFound" error.
     }
 
-    /*
-     * Returns application context
-     */
-    private Context getApplicationContext() {
-        return this.getApplicationActivity().getApplicationContext();
-    }
-
-    /*
-     * Returns application activity
-     */
-    private Activity getApplicationActivity() {
-        return this.cordova.getActivity();
-    }
-
-    private class AdsListener implements IUnityAdsInitializationListener {
-        private IUnityAdsShowListener showListener = new IUnityAdsShowListener() {
-            @Override
-            public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
-                Log.d(TAG, String.format("videoAdPlacementId: %s %s", placementId, "onUnityAdsError"));
-                Log.d(TAG, String.format("%s", message));
-                callbackID.error(getErrorMessage(message, error.name()));
-            }
-
-            @Override
-            public void onUnityAdsShowStart(String placementId) {
-                Log.v("UnityAdsExample", "onUnityAdsShowStart: " + placementId);
-            }
-
-            @Override
-            public void onUnityAdsShowClick(String placementId) {
-                Log.v(TAG, "CLICKED" + placementId);
-                callbackID.success();
-            }
-
-            @Override
-            public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
-                if (UnityAds.UnityAdsShowCompletionState.COMPLETED.equals(state)) {
-                    callbackID.success();
-                    return;
-                }
-                if (UnityAds.UnityAdsShowCompletionState.SKIPPED.equals(state)) {
-                    callbackID.error(getErrorMessage("skipped", "SKIPPED"));
-                    return;
-                }
-                callbackID.error(getErrorMessage("DID FINISH WITH ERROR", "ERROR"));
-            }
-        };
-
-        private IUnityAdsLoadListener adsLoadListener = new IUnityAdsLoadListener() {
-            @Override
-            public void onUnityAdsAdLoaded(String videoAdPlacementId) {
-                UnityAds.show(getApplicationActivity(), videoAdPlacementId, new UnityAdsShowOptions(), showListener);
-            }
-
-            @Override
-            public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
-                Log.d(TAG, String.format("videoAdPlacementId: %s %s", placementId, "onUnityAdsFailedToLoad"));
-                Log.d(TAG, String.format("%s", message));
-                callbackID.error(getErrorMessage(message, error.name()));
-            }
-        };
-
-        public void show(String[] videoAdParameters) {
-            String serverId = videoAdParameters[0];
-            if (serverId != null) {
-                PlayerMetaData playerMetaData = new PlayerMetaData(getApplicationContext());
-                playerMetaData.setServerId(serverId);
-                playerMetaData.commit();
-            } else {
-                Log.w(TAG, "serverId arg missing!");
-            }
-
-            String videoAdPlacementId = videoAdParameters[1];
-            UnityAds.load(videoAdPlacementId, adsLoadListener);
-        }
-
-        private void initialize(JSONArray args, CallbackContext callbackContext) {
-            callbackID = callbackContext;
-            String gameId;
-            boolean testMode = false;
-            boolean debugMode = false;
-
-            try {
-                gameId = args.getString(0);
-            } catch (JSONException e) {
-                callbackContext.error(getErrorMessage("Invalid Game ID", "INVALID_GAME_ID"));
-                return;
-            }
-
-            try {
-                testMode = args.getBoolean(1);
-            } catch (JSONException e) {
-                Log.w(TAG, "Warning: Test mode not set");
-            }
-
-            try {
-                debugMode = args.getBoolean(2);
-            } catch (JSONException e) {
-                Log.w(TAG, "Warning: Debug mode not set");
-            }
-
-            if (INVALID_GAME_ID.equals(gameId)) {
-                callbackContext.error(getErrorMessage("Invalid Game ID", "INVALID_GAME_ID"));
-                return;
-            }
-
-            UnityAds.setDebugMode(debugMode);
-            UnityAds.initialize(getApplicationContext(), gameId, testMode, this);
-        }
-
-        @Override
-        public void onInitializationComplete() {
-            callbackID.success();
-        }
-
-        @Override
-        public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
-            Log.w(TAG, "onInitializationFailed" + message);
-            callbackID.error(getErrorMessage(message, error.name()));
-        }
+    @Override
+    public void onReset() {
+        // The WebView navigated or reloaded, nobody is listening to the old callbacks anymore
+        initializationController.reset();
+        adShowController.reset();
     }
 }

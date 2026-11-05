@@ -13,11 +13,17 @@ UnityAds.initialize(UnityAdsGameId: string, testMode: boolean, debugMode: boolea
 ### Show an ad
 
 ```typescript
-UnityAds.show(serverId?: string, videoAdPlacementId?: string): Promise
+UnityAds.show(serverId: string, videoAdPlacementId: string): Promise
 ```
 
+- Both arguments are required
 - The `Promise` will be resolved after video has been successfully watched.
 - The `Promise` will be rejected if video could not be loaded, a failure happened while showing the video, the video was skipped, canceled or another issue
+- The `Promise` will be rejected right away, without loading an ad, with
+  - `NOT_INITIALIZED` if `initialize` has not succeeded yet
+  - `SERVER_ID_MISSING` if `serverId` is missing
+  - `PLACEMENT_ID_MISSING` if `videoAdPlacementId` is missing
+  - `ALREADY_SHOWING` if another ad is still loading or showing
 
 ## How to update the SDK
 

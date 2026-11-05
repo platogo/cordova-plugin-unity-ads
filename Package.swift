@@ -2,7 +2,7 @@
 
 import PackageDescription
 
-let UnityAdsVersion: Version = "4.19.0"
+let UnityAdsVersion: Version = "4.21.0"
 
 let package = Package(
     name: "cordova-plugin-unity-ads",
